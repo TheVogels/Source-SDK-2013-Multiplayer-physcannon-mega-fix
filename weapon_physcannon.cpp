@@ -1286,36 +1286,132 @@ protected:
 
 	void DoMegaEffectClosed(void)
 	{
-#ifdef CLIENT_DLL_
-		float flScaleFactor = true ? 1.5f : 1.0f;
-		// Turn off the center sprite
-		//if (m_Parameters[PHYSCANNON_CORE] != nil)
-		{
-			m_Parameters[PHYSCANNON_CORE].SetBrightness(0.0, 0.1f);
-			m_Parameters[PHYSCANNON_CORE].SetScale(0.0f, 0.1f);
-			m_Parameters[PHYSCANNON_CORE].TurnOff();
-		}
+		DoEffectClosed();
+	}
 
-		// Turn off the end-caps
-		for (int i = 0; i < 2; i++)
+	void DoMegaEffectReady(void)
+	{
+
+#ifdef CLIENT_DLL
+
+#define	NUM_GLOW_SPRITES ((CWeaponPhysCannon::PHYSCANNON_GLOW6-CWeaponPhysCannon::PHYSCANNON_GLOW1)+1)
+#define NUM_ENDCAP_SPRITES ((CWeaponPhysCannon::PHYSCANNON_ENDCAP3-CWeaponPhysCannon::PHYSCANNON_ENDCAP1)+1)
+
+#define	NUM_PHYSCANNON_BEAMS	3
+
+		// Special POV case
+		if (ShouldDrawUsingViewModel())
 		{
-			if (m_hEndSprites[i] != NULL)
-			{
-				m_hEndSprites[i]->TurnOff();
-			}
+			//Turn on the center sprite
+			m_Parameters[PHYSCANNON_CORE].GetScale().InitFromCurrent(0.15f, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].GetAlpha().InitFromCurrent(128, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].SetVisible();
+		}
+		else
+		{
+			//Turn off the center sprite
+			m_Parameters[PHYSCANNON_CORE].GetScale().InitFromCurrent(0.15f, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].GetAlpha().InitFromCurrent(128, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].SetVisible(false);
 		}
 
 		// Turn on the glow sprites
-		for (int i = 0; i < NUM_SPRITES; i++)
+		for (int i = PHYSCANNON_GLOW1; i < (PHYSCANNON_GLOW1 + NUM_GLOW_SPRITES); i++)
 		{
-			if (m_hGlowSprites[i] != NULL)
-			{
-				m_hGlowSprites[i]->TurnOn();
-				m_hGlowSprites[i]->SetBrightness(16.0f, 0.2f);
-				m_hGlowSprites[i]->SetScale(0.3f * flScaleFactor, 0.2f);
-			}
+			m_Parameters[i].GetScale().InitFromCurrent(0.2f * SpriteScaleFactor(), 0.2f);
+			m_Parameters[i].GetAlpha().InitFromCurrent(24.0f, 0.2f);
+			m_Parameters[i].SetVisible();
 		}
+
+		// Turn on the glow sprites
+		for (int i = PHYSCANNON_ENDCAP1; i < (PHYSCANNON_ENDCAP1 + NUM_ENDCAP_SPRITES); i++)
+		{
+			m_Parameters[i].SetVisible(false);
+		}
+
 #endif
+
+	}
+
+	void DoMegaEffectHolding()
+	{
+
+#ifdef CLIENT_DLL
+
+		if (ShouldDrawUsingViewModel())
+		{
+			// Scale up the center sprite
+			m_Parameters[PHYSCANNON_CORE].GetScale().InitFromCurrent(0.2f, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].GetAlpha().InitFromCurrent(255, 0.1f);
+			m_Parameters[PHYSCANNON_CORE].SetVisible();
+
+			// Prepare for scale up
+			m_Parameters[PHYSCANNON_BLAST].SetVisible(false);
+
+			// Turn on the glow sprites
+			for (int i = PHYSCANNON_GLOW1; i < (PHYSCANNON_GLOW1 + NUM_GLOW_SPRITES); i++)
+			{
+				m_Parameters[i].GetScale().InitFromCurrent(0.25f * SpriteScaleFactor(), 0.2f);
+				m_Parameters[i].GetAlpha().InitFromCurrent(32.0f, 0.2f);
+				m_Parameters[i].SetVisible();
+			}
+
+			// Turn on the glow sprites
+			// NOTE: The last glow is left off for first-person
+			for (int i = PHYSCANNON_ENDCAP1; i < (PHYSCANNON_ENDCAP1 + NUM_ENDCAP_SPRITES - 1); i++)
+			{
+				m_Parameters[i].SetVisible();
+			}
+
+			// Create our beams
+			CBasePlayer* pOwner = ToBasePlayer(GetOwner());
+			CBaseEntity* pBeamEnt = pOwner->GetViewModel();
+
+			// Setup the beams
+			m_Beams[0].Init(LookupAttachment("fork1t"), 1, pBeamEnt, true);
+			m_Beams[1].Init(LookupAttachment("fork2t"), 1, pBeamEnt, true);
+
+			// Set them visible
+			m_Beams[0].SetVisible();
+			m_Beams[1].SetVisible();
+		}
+		else
+		{
+			// Scale up the center sprite
+			m_Parameters[PHYSCANNON_CORE].GetScale().InitFromCurrent(14.0f, 0.2f);
+			m_Parameters[PHYSCANNON_CORE].GetAlpha().InitFromCurrent(255.0f, 0.1f);
+			m_Parameters[PHYSCANNON_CORE].SetVisible();
+
+			// Prepare for scale up
+			m_Parameters[PHYSCANNON_BLAST].SetVisible(false);
+
+			// Turn on the glow sprites
+			for (int i = PHYSCANNON_GLOW1; i < (PHYSCANNON_GLOW1 + NUM_GLOW_SPRITES); i++)
+			{
+				m_Parameters[i].GetScale().InitFromCurrent(0.5f * SPRITE_SCALE, 0.2f);
+				m_Parameters[i].GetAlpha().InitFromCurrent(64.0f, 0.2f);
+				m_Parameters[i].SetVisible();
+			}
+
+			// Turn on the glow sprites
+			for (int i = PHYSCANNON_ENDCAP1; i < (PHYSCANNON_ENDCAP1 + NUM_ENDCAP_SPRITES); i++)
+			{
+				m_Parameters[i].SetVisible();
+			}
+
+			// Setup the beams
+			m_Beams[0].Init(LookupAttachment("fork1t"), 1, this, false);
+			m_Beams[1].Init(LookupAttachment("fork2t"), 1, this, false);
+			m_Beams[2].Init(LookupAttachment("fork3t"), 1, this, false);
+
+			// Set them visible
+			m_Beams[0].SetVisible();
+			m_Beams[1].SetVisible();
+			m_Beams[2].SetVisible();
+		}
+
+#endif
+
 	}
 
 	void DoMegaEffect(int effectType, Vector* pos)
@@ -1323,18 +1419,15 @@ protected:
 		switch (effectType)
 		{
 		case 1:
-			//DoMegaEffectClosed();
-			DoEffectClosed();
+			DoMegaEffectClosed();
 			break;
 
 		case 2:
-			//DoMegaEffectReady();
-			DoEffectReady();
+			DoMegaEffectReady();
 			break;
 
 		case 3:
-			//DoMegaEffectHolding();
-			DoEffectHolding();
+			DoMegaEffectHolding();
 			break;
 
 		default:
@@ -1729,7 +1822,7 @@ void CWeaponPhysCannon::OnDataChanged( DataUpdateType_t type )
 //-----------------------------------------------------------------------------
 inline float CWeaponPhysCannon::SpriteScaleFactor() 
 {
-	return 1.0f;
+	return IsMegaPhysCannon() ? 1.5f : 1.0f;
 }
 
 
@@ -3396,11 +3489,21 @@ void CWeaponPhysCannon::StartEffects( void )
 		m_Parameters[PHYSCANNON_CORE].GetScale().Init( 0.0f, 1.0f, 0.1f );
 		m_Parameters[PHYSCANNON_CORE].GetAlpha().Init( 255.0f, 255.0f, 0.1f );
 		m_Parameters[PHYSCANNON_CORE].SetAttachment( 1 );
-		
-		if ( m_Parameters[PHYSCANNON_CORE].SetMaterial( PHYSCANNON_CENTER_GLOW ) == false )
+		if (!IsMegaPhysCannon())
 		{
-			// This means the texture was not found
-			Assert( 0 );
+			if (m_Parameters[PHYSCANNON_CORE].SetMaterial(PHYSCANNON_CENTER_GLOW) == false)
+			{
+				// This means the texture was not found
+				Assert(0);
+			}
+		}
+		else
+		{
+			if (m_Parameters[PHYSCANNON_CORE].SetMaterial(MEGACANNON_CENTER_GLOW) == false)
+			{
+				// This means the texture was not found
+				Assert(0);
+			}
 		}
 	}
 
@@ -3414,11 +3517,21 @@ void CWeaponPhysCannon::StartEffects( void )
 		m_Parameters[PHYSCANNON_BLAST].GetAlpha().Init( 255.0f, 255.0f, 0.1f );
 		m_Parameters[PHYSCANNON_BLAST].SetAttachment( 1 );
 		m_Parameters[PHYSCANNON_BLAST].SetVisible( false );
-		
-		if ( m_Parameters[PHYSCANNON_BLAST].SetMaterial( PHYSCANNON_BLAST_SPRITE ) == false )
+		if (!IsMegaPhysCannon())
 		{
-			// This means the texture was not found
-			Assert( 0 );
+			if (m_Parameters[PHYSCANNON_BLAST].SetMaterial(PHYSCANNON_BLAST_SPRITE) == false)
+			{
+				// This means the texture was not found
+				Assert(0);
+			}
+		}
+		else
+		{
+			if (m_Parameters[PHYSCANNON_BLAST].SetMaterial(MEGACANNON_BLAST_SPRITE) == false)
+			{
+				// This means the texture was not found
+				Assert(0);
+			}
 		}
 	}
 
@@ -3465,11 +3578,21 @@ void CWeaponPhysCannon::StartEffects( void )
 			m_Parameters[i].SetAttachment( LookupAttachment( attachNamesGlowThirdPerson[i-PHYSCANNON_GLOW1] ) );
 		}
 		m_Parameters[i].SetColor( Vector( 255, 128, 0 ) );
-		
-		if ( m_Parameters[i].SetMaterial( PHYSCANNON_GLOW_SPRITE ) == false )
+		if (!IsMegaPhysCannon())
 		{
-			// This means the texture was not found
-			Assert( 0 );
+			if ( m_Parameters[i].SetMaterial( PHYSCANNON_GLOW_SPRITE ) == false )
+			{
+				// This means the texture was not found
+				Assert( 0 );
+			}
+		}
+		else
+		{
+			if ( m_Parameters[i].SetMaterial( MEGACANNON_GLOW_SPRITE ) == false )
+			{
+				// This means the texture was not found
+				Assert( 0 );
+			}
 		}
 	}
 
@@ -3494,11 +3617,21 @@ void CWeaponPhysCannon::StartEffects( void )
 		m_Parameters[i].GetAlpha().SetAbsolute( 255.0f );
 		m_Parameters[i].SetAttachment( LookupAttachment( attachNamesEndCap[i-PHYSCANNON_ENDCAP1] ) );
 		m_Parameters[i].SetVisible( false );
-		
-		if ( m_Parameters[i].SetMaterial( PHYSCANNON_ENDCAP_SPRITE ) == false )
+		if (!IsMegaPhysCannon())
 		{
-			// This means the texture was not found
-			Assert( 0 );
+			if (m_Parameters[i].SetMaterial(PHYSCANNON_ENDCAP_SPRITE) == false)
+			{
+				// This means the texture was not found
+				Assert(0);
+			}
+		}
+		else
+		{
+			if ( m_Parameters[i].SetMaterial( MEGACANNON_ENDCAP_SPRITE ) == false )
+			{
+				// This means the texture was not found
+				Assert( 0 );
+			}
 		}
 	}
 
@@ -3763,6 +3896,8 @@ void CWeaponPhysCannon::DoEffectNone( void )
 //-----------------------------------------------------------------------------
 void CWeaponPhysCannon::DoEffect( int effectType, Vector *pos )
 {
+	// Make sure we're active
+	StartEffects();
 	m_EffectState = effectType;
 
 #ifdef CLIENT_DLL
