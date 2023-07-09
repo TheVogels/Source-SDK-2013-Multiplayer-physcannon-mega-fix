@@ -1825,7 +1825,7 @@ inline float CWeaponPhysCannon::SpriteScaleFactor()
 	return IsMegaPhysCannon() ? 1.5f : 1.0f;
 }
 
-#define RemoveToHaveNormalHL2DMDeploy
+//#define RemoveToHaveNormalHL2DMDeploy
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
