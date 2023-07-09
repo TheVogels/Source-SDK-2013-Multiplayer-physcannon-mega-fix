@@ -1825,7 +1825,7 @@ inline float CWeaponPhysCannon::SpriteScaleFactor()
 	return IsMegaPhysCannon() ? 1.5f : 1.0f;
 }
 
-
+#define RemoveToHaveNormalHL2DMDeploy
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
@@ -1833,10 +1833,14 @@ inline float CWeaponPhysCannon::SpriteScaleFactor()
 bool CWeaponPhysCannon::Deploy( void )
 {
 	CloseElements();
+#ifdef RemoveToHaveNormalHL2DMDeploy
+	DoEffect( EFFECT_CLOSED );
+#else
 	DoEffect( EFFECT_READY );
+#endif
 
 	bool bReturn = BaseClass::Deploy();
-
+#ifndef RemoveToHaveNormalHL2DMDeploy
 	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->curtime;
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
@@ -1845,6 +1849,7 @@ bool CWeaponPhysCannon::Deploy( void )
 	{
 		pOwner->SetNextAttack( gpGlobals->curtime );
 	}
+#endif
 
 	return bReturn;
 }
@@ -3944,7 +3949,38 @@ void CWeaponPhysCannon::DoEffect( int effectType, Vector *pos )
 //-----------------------------------------------------------------------------
 const char *CWeaponPhysCannon::GetShootSound( int iIndex ) const
 {
-	return BaseClass::GetShootSound( iIndex );
+	// Just do this normally if we're a normal physcannon
+#ifdef CLIENT_DLL
+	if (Is_mega == false)
+#else
+	if (PlayerHasMegaPhysCannon() == false)
+#endif
+		return BaseClass::GetShootSound(iIndex);
+
+	// We override this if we're the charged up version
+	switch (iIndex)
+	{
+	case EMPTY:
+		return "Weapon_MegaPhysCannon.DryFire";
+		break;
+
+	case SINGLE:
+		return "Weapon_MegaPhysCannon.Launch";
+		break;
+
+	case SPECIAL1:
+		return "Weapon_MegaPhysCannon.Pickup";
+		break;
+
+	case MELEE_MISS:
+		return "Weapon_MegaPhysCannon.Drop";
+		break;
+
+	default:
+		break;
+	}
+
+	return BaseClass::GetShootSound(iIndex);
 }
 
 #ifdef CLIENT_DLL
