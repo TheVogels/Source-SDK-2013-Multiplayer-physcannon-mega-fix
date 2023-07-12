@@ -66,7 +66,7 @@ ConVar player_throwforce( "player_throwforce", "1000", FCVAR_REPLICATED | FCVAR_
 
 ConVar physcannon_mega_pullforce("physcannon_mega_pullforce", "8000", FCVAR_NOTIFY | FCVAR_SERVER);
 ConVar physcannon_mega_tracelength("physcannon_mega_tracelength", "850", FCVAR_NOTIFY | FCVAR_SERVER);
-
+#define SP_LIKE_PHYSCANNON
 #ifndef CLIENT_DLL
 extern ConVar hl2_normspeed;
 extern ConVar hl2_walkspeed;
@@ -1191,7 +1191,7 @@ public:
 	void	ItemPreFrame();
 	void	ItemPostFrame();
 
-	void	ForceDrop( void );
+	void	ForceDrop( bool isholster = false );
 	bool	DropIfEntityHeld( CBaseEntity *pTarget );	// Drops its held entity if it matches the entity passed in
 	CGrabController &GetGrabController() { return m_grabController; }
 
@@ -1437,7 +1437,7 @@ protected:
 	}
 
 	void	OpenElements( void );
-	void	CloseElements( void );
+	void	CloseElements( bool isholster = false );
 
 	// Pickup and throw objects.
 	bool	CanPickupObject( CBaseEntity *pTarget );
@@ -1740,6 +1740,20 @@ void CWeaponPhysCannon::Precache( void )
 	PrecacheModel(MEGACANNON_RAGDOLL_BOOGIE_SPRITE);
 
 	PrecacheScriptSound( "Weapon_PhysCannon.HoldSound" );
+	PrecacheSound("weapons/physcannon/physcannon_drop.wav");
+	PrecacheSound("weapons/physcannon/physcannon_pickup.wav");
+	PrecacheSound("weapons/physcannon/physcannon_hold_loop.wav");
+	PrecacheSound("weapons/physcannon/superphys_launch2.wav");
+	PrecacheSound("weapons/physcannon/superphys_launch1.wav");
+	PrecacheSound("weapons/physcannon/superphys_launch3.wav");
+	PrecacheSound("weapons/physcannon/superphys_launch4.wav");
+	PrecacheSound("weapons/physcannon/superphys_hold_loop.wav");
+	PrecacheSound("weapons/physcannon/superphys_small_zap1.wav");
+	PrecacheSound("weapons/physcannon/superphys_small_zap2.wav");
+	PrecacheSound("weapons/physcannon/superphys_small_zap3.wav");
+	PrecacheSound("weapons/physcannon/superphys_small_zap4.wav");
+	PrecacheSound("weapons/physcannon/physcannon_hold_loop.wav");
+	PrecacheSound("weapons/physcannon/physcannon_tooheavy.wav");
 
 	BaseClass::Precache();
 }
@@ -1882,9 +1896,9 @@ void CWeaponPhysCannon::SetViewModel(void)
 //-----------------------------------------------------------------------------
 // Purpose: Force the cannon to drop anything it's carrying
 //-----------------------------------------------------------------------------
-void CWeaponPhysCannon::ForceDrop( void )
+void CWeaponPhysCannon::ForceDrop(bool isholster)
 {
-	CloseElements();
+	CloseElements(isholster);
 	DetachObject();
 	StopEffects();
 }
@@ -1948,7 +1962,7 @@ bool CWeaponPhysCannon::Holster( CBaseCombatWeapon *pSwitchingTo )
 	if ( m_bActive )
 		return false;
 
-	ForceDrop();
+	ForceDrop(true);
 	DestroyEffects();
 
 	return BaseClass::Holster( pSwitchingTo );
@@ -2474,7 +2488,7 @@ bool CWeaponPhysCannon::AttachObject( CBaseEntity *pObject, const Vector &vPosit
 		m_bResetOwnerEntity = true;
 	}
 
-/*	if( pOwner )
+	if( pOwner )
 	{
 		pOwner->EnableSprint( false );
 
@@ -2483,7 +2497,7 @@ bool CWeaponPhysCannon::AttachObject( CBaseEntity *pObject, const Vector &vPosit
 
 		//Msg( "Load perc: %f -- Movement speed: %f/%f\n", loadWeight, maxSpeed, hl2_normspeed.GetFloat() );
 		pOwner->SetMaxSpeed( maxSpeed );
-	}*/
+	}
 
 	// Don't drop again for a slight delay, in case they were pulling objects near them
 	m_flNextSecondaryAttack = gpGlobals->curtime + 0.4f;
@@ -3168,7 +3182,9 @@ void CWeaponPhysCannon::DoEffectIdle( void )
 //-----------------------------------------------------------------------------
 void CWeaponPhysCannon::ItemPostFrame()
 {
+#ifndef CLIENT_DLL
 	Is_mega=IsMegaPhysCannon();
+#endif
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	if ( pOwner == NULL )
 	{
@@ -3307,6 +3323,12 @@ bool CWeaponPhysCannon::CanPickupObject( CBaseEntity *pTarget )
 			return false;
 	}
 
+	if (pTarget->IsNPC() && pTarget->MyNPCPointer()->CanBecomeRagdoll())
+		return true;
+
+	if (dynamic_cast<CRagdollProp*>(pTarget))
+		return true;
+
 	IPhysicsObject *pObj = pTarget->VPhysicsGetObject();	
 
 	if ( pObj && pObj->GetGameFlags() & FVPHYSICS_PLAYER_HELD )
@@ -3363,10 +3385,10 @@ void CWeaponPhysCannon::OpenElements( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponPhysCannon::CloseElements( void )
+void CWeaponPhysCannon::CloseElements( bool isholster )
 {
 	// The mega cannon cannot be closed!
-	if (IsMegaPhysCannon())
+	if (IsMegaPhysCannon() && !isholster)
 	{
 		OpenElements();
 		return;
