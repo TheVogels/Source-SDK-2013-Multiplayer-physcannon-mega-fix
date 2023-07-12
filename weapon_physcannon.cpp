@@ -66,7 +66,7 @@ ConVar player_throwforce( "player_throwforce", "1000", FCVAR_REPLICATED | FCVAR_
 
 ConVar physcannon_mega_pullforce("physcannon_mega_pullforce", "8000", FCVAR_NOTIFY | FCVAR_SERVER);
 ConVar physcannon_mega_tracelength("physcannon_mega_tracelength", "850", FCVAR_NOTIFY | FCVAR_SERVER);
-#define SP_LIKE_PHYSCANNON
+//#define SP_LIKE_PHYSCANNON
 #ifndef CLIENT_DLL
 extern ConVar hl2_normspeed;
 extern ConVar hl2_walkspeed;
@@ -1842,7 +1842,7 @@ inline float CWeaponPhysCannon::SpriteScaleFactor()
 	return IsMegaPhysCannon() ? 1.5f : 1.0f;
 }
 
-#define RemoveToHaveNormalHL2DMDeploy
+//#define RemoveToHaveNormalHL2DMDeploy
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
