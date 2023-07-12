@@ -1563,8 +1563,11 @@ protected:
 
 	float	m_flRepuntObjectTime;
 	EHANDLE m_hLastPuntedObject;
-
+#ifdef CLIENT_DLL
+	bool Is_mega;
+#else
 	CNetworkVar(bool, Is_mega);
+#endif
 
 	inline bool	IsMegaPhysCannon()
 	{
@@ -1825,7 +1828,7 @@ inline float CWeaponPhysCannon::SpriteScaleFactor()
 	return IsMegaPhysCannon() ? 1.5f : 1.0f;
 }
 
-//#define RemoveToHaveNormalHL2DMDeploy
+#define RemoveToHaveNormalHL2DMDeploy
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Output : Returns true on success, false on failure.
@@ -3030,6 +3033,11 @@ void CWeaponPhysCannon::ItemPreFrame()
 
 	if ( localplayer && !localplayer->IsObserver() )
 		ManagePredictedObject();
+#else
+	if(IsMegaPhysCannon())
+	m_nSkin = 1;
+	else
+	m_nSkin = 0;
 #endif
 
 	// Update the object if the weapon is switched on.
