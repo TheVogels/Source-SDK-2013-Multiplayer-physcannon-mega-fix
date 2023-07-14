@@ -63,7 +63,7 @@ ConVar physcannon_pullforce( "physcannon_pullforce", "4000", FCVAR_REPLICATED | 
 ConVar physcannon_cone( "physcannon_cone", "0.97", FCVAR_REPLICATED | FCVAR_CHEAT );
 ConVar physcannon_ball_cone( "physcannon_ball_cone", "0.997", FCVAR_REPLICATED | FCVAR_CHEAT );
 ConVar player_throwforce( "player_throwforce", "1000", FCVAR_REPLICATED | FCVAR_CHEAT );
-
+#define FCVAR_SERVER FCVAR_REPLICATED
 ConVar physcannon_mega_pullforce("physcannon_mega_pullforce", "8000", FCVAR_NOTIFY | FCVAR_SERVER);
 ConVar physcannon_mega_tracelength("physcannon_mega_tracelength", "850", FCVAR_NOTIFY | FCVAR_SERVER);
 //#define SP_LIKE_PHYSCANNON
