@@ -185,7 +185,7 @@ static void MatrixOrthogonalize( matrix3x4_t &matrix, int column )
 }
 
 #define SIGN(x) ( (x) < 0 ? -1 : 1 )
-bool PlayerPickup2 = false;
+//bool PlayerPickup2 = false;
 
 static QAngle AlignAngles( const QAngle &angles, float cosineAlignAngle )
 {
@@ -936,7 +936,7 @@ bool CPlayerPickupController::IsHoldingEntity( CBaseEntity *pEnt )
 #endif
 void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject )
 {
-	PlayerPickup2 = PlayerPickup;
+	//PlayerPickup2 = PlayerPickup;
 #ifndef CLIENT_DLL
 	
 	//Don't pick up if we don't have a phys object.
