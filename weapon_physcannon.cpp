@@ -934,7 +934,7 @@ bool CPlayerPickupController::IsHoldingEntity( CBaseEntity *pEnt )
 #ifndef CLIENT_DLL
 #include "player_pickup.h"
 #endif
-void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject, bool PlayerPickup )
+void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject )
 {
 	PlayerPickup2 = PlayerPickup;
 #ifndef CLIENT_DLL
